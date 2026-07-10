@@ -5,7 +5,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-/ ფორმის გაგზავნის ლოგიკა
+// ფორმის გაგზავნის ლოგიკა
 document.getElementById("loginForm").addEventListener("submit", function (e) {
   e.preventDefault();
 
@@ -13,45 +13,38 @@ document.getElementById("loginForm").addEventListener("submit", function (e) {
   const passwordInput = document.getElementById("loginPassword");
 
   const emailValue = emailInput.value.trim().toLowerCase();
-  const passwordValue = passwordInput.value; // პაროლს trim არ უნდა
+  const passwordValue = passwordInput.value;
 
   // შეცდომების გასუფთავება
   clearLoginErrors();
 
   let hasErrors = false;
 
-  // 1. Email-ის სავალდებულოობის შემოწმება
   if (emailValue === "") {
     showLoginError("loginEmailError", "Email is required");
     hasErrors = true;
   }
 
-  // 2. Password-ის სავალდებულოობის შემოწმება
   if (passwordValue === "") {
     showLoginError("loginPasswordError", "Password is required");
     hasErrors = true;
   }
 
-  // თუ ველები ცარიელია, შეჩერდეს და არ გადავიდეს ბაზის შემოწმებაზე
   if (hasErrors) return;
 
-  // 3. ავტორიზაციის ლოგიკა (crm_users-ში ძებნა)
   const crmUsers = JSON.parse(localStorage.getItem("crm_users")) || [];
 
-  // მომხმარებლის მოძებნა .find() მეთოდით
   const foundUser = crmUsers.find(
     (user) => user.email.toLowerCase() === emailValue,
   );
 
-  // წყვილის შემოწმება: არსებობს თუ არა იუზერი და ემთხვევა თუ არა პაროლი
+  // შემოწმება: არსებობს თუ არა იუზერი და ემთხვევა თუ არა პაროლი
   if (!foundUser || foundUser.password !== passwordValue) {
     const generalErrorDiv = document.getElementById("generalError");
     generalErrorDiv.innerText = "Invalid email or password";
     generalErrorDiv.style.display = "block";
-    return; // ფორმა არ "ტყდება", ხელახლა ცდა შესაძლებელია
+    return;
   }
-
-  // --- P2.3: წარმატებული ლოგინის ქცევა ---
 
   // 1. იქმნება Session ობიექტი და იწერება crm_session-ში
   const sessionData = {
@@ -61,7 +54,6 @@ document.getElementById("loginForm").addEventListener("submit", function (e) {
   };
   localStorage.setItem("crm_session", JSON.stringify(sessionData));
 
-  // 2. მყისიერი გადამისამართება dashboard.html-ზე
   window.location.href = "dashboard.html";
 });
 
