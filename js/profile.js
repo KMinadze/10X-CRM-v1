@@ -6,41 +6,56 @@ let currentUser = null;
 let usersState = [];
 
 function initProfilePage() {
-  // 1. წამოვიღოთ სესია და მომხმარებლები
-  const sessionEmail = localStorage.getItem("crm_session");
+  // 1. წამოვიღოთ სესია
+  const sessionRaw = localStorage.getItem("crm_session");
   usersState = JSON.parse(localStorage.getItem("crm_users")) || [];
 
-  // 🔍 დებაგისთვის: კონსოლში ვნახოთ, რა წერია ბაზაში (F12-ში გამოჩნდება)
-  console.log("Current Session:", sessionEmail);
-  console.log("All Users:", usersState);
-
-  // 2. თუ სესია საერთოდ არ არსებობს, გადავიყვანოთ მთავარზე (შენს შემთხვევაში index.html ან dashboard.html)
-  if (!sessionEmail) {
+  if (!sessionRaw) {
     window.location.href = "index.html";
     return;
   }
 
-  // 3. ვეძებთ მომხმარებელს (case-insensitive - დიდი და პატარა ასოების იგნორირებით)
+  let sessionEmail = "";
+
+  // დაზღვევა: ვამოწმებთ სესია უბრალო ტექსტია (ელფოსტა) თუ JSON ობიექტი
+  try {
+    const parsedSession = JSON.parse(sessionRaw);
+    sessionEmail = parsedSession.email || sessionRaw;
+  } catch (e) {
+    sessionEmail = sessionRaw; // თუ JSON არ არის, პირდაპირ ტექსტია
+  }
+
+  // 2. ვეძებთ მომხმარებელს რეალურ ბაზაში ელფოსტით
   currentUser = usersState.find(
     (u) => u.email.trim().toLowerCase() === sessionEmail.trim().toLowerCase(),
   );
 
-  // 4. დაზღვევა: თუ სესია არის, მაგრამ ეს მომხმარებელი 'crm_users'-ში რატომღაც არ იძებნება,
-  // კოდი რომ არ გაფუჭდეს, დროებითი ობიექტი შევქმნათ იქვე
+  // 3. თუ მომხმარებელი მაინც ვერ მოიძებნა, წამოვიღოთ მონაცემები სესიის ობიექტიდანვე, რომ ნინო აღარ გამოხტეს
   if (!currentUser) {
-    currentUser = {
-      fullName: "Nino Beridze",
-      email: sessionEmail,
-      company: "10X Sales",
-      password: "Password123", // დეფოლტ პაროლი დასაზღვევად
-      createdAt: new Date().toISOString(),
-    };
-    // ჩავამატოთ ბაზაშიც, რომ შემდეგზე იპოვოს
+    try {
+      const parsedSession = JSON.parse(sessionRaw);
+      currentUser = {
+        fullName: parsedSession.fullName || "User Name",
+        email: parsedSession.email || "user@example.com",
+        company: parsedSession.company || "10X Sales",
+        password: parsedSession.password || "Password123",
+        createdAt: parsedSession.loggedInAt || new Date().toISOString(),
+      };
+    } catch (e) {
+      currentUser = {
+        fullName: "User Name",
+        email: sessionEmail,
+        company: "10X Sales",
+        password: "Password123",
+        createdAt: new Date().toISOString(),
+      };
+    }
+    // შევინახოთ ბაზაში, რომ შემდეგზე ჩვეულებრივად იპოვოს
     usersState.push(currentUser);
     localStorage.setItem("crm_users", JSON.stringify(usersState));
   }
 
-  // 5. თუ ყველაფერი კარგადაა, ჩავრთოთ რენდერი
+  // 4. გავუშვათ რენდერი
   renderProfileInfo();
   setupEventListeners();
 }
