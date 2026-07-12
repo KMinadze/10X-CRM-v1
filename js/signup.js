@@ -79,6 +79,7 @@ document.getElementById("signUpForm").addEventListener("submit", function (e) {
   // --- წარმატებული რეგისტრაციის ქცევა ---
   const newUser = {
     id: Date.now(),
+    fullName: fullNameValue,
     email: emailValue,
     password: passwordValue,
     company: companyValue || null,

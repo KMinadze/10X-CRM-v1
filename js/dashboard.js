@@ -26,9 +26,22 @@ function initWelcomeHeader() {
   );
 
   let firstName = "User";
-  if (loggedInUser && loggedInUser.fullName) {
-    firstName = loggedInUser.fullName.split(" ")[0];
+
+  // თუ ბაზაში იპოვა მომხმარებელი, ამოიღებს მის სახელს
+  if (loggedInUser) {
+    const rawName = loggedInUser.fullName || loggedInUser.name;
+    if (rawName) {
+      firstName = rawName.split(" ")[0]; // იღებს მხოლოდ პირველ სახელს
+    }
   }
+
+  // თუ ბაზაში ვერ იპოვა, იმეილის @-მდე ნაწილს აიღებს
+  if (firstName === "User" && session.email) {
+    firstName = session.email.split("@")[0];
+  }
+
+  // პირველ ასოს ყოველთვის ადიდებს სილამაზისთვის
+  firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
 
   const welcomeEl = document.getElementById("welcomeMessage");
   const clockEl = document.getElementById("liveClock");
@@ -36,7 +49,6 @@ function initWelcomeHeader() {
   if (welcomeEl) welcomeEl.innerText = `Welcome back, ${firstName}!`;
 
   if (clockEl) {
-    // ფუნქცია, რომელიც ეგრევე დახატავს დროს და 1 წამს არ დაელოდება
     const updateTime = () => {
       const now = new Date();
       clockEl.innerText = `Live Time: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
